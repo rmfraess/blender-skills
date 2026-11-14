@@ -1,6 +1,6 @@
 ---
 name: blender-video-editing
-description: Video in Blender 5.3 - Video Sequencer edits from Python (clips, image sequences, crossfades, titles, music fades, proxies, color management, H.264/AAC output) and motion tracking (feature detection, camera solve, scene orientation, tripod and plane tracking, stabilization) for VFX shots. Use to cut renders/footage together or match-move a camera.
+description: Use for Blender video editing (VSE) and motion tracking. Video in Blender 5.3 - Video Sequencer edits from Python (clips, image sequences, crossfades, titles, music fades, proxies, color management, H.264/AAC output) and motion tracking (feature detection, camera solve, scene orientation, tripod and plane tracking, stabilization) for VFX shots.
 license: MIT
 metadata:
   author: blender-agent-skills

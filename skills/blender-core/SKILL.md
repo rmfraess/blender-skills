@@ -1,6 +1,6 @@
 ---
 name: blender-core
-description: Foundation for any Blender 5.2+ task an agent drives - running bpy via MCP (live) or headless CLI, context overrides, locale-safe node lookup, enum discovery, 5.x API changes, verification. Use first for any Blender, bpy, .blend or 3D-asset request; routes to the specialized blender-* skills.
+description: Use first for any Blender/bpy task; routes to blender-*. Foundation for any Blender 5.2+ task an agent drives - running bpy via MCP (live) or headless CLI, context overrides, locale-safe node lookup, enum discovery, 5.x API changes, verification.
 license: MIT
 compatibility: Blender 5.2 LTS or newer, verified on 5.3. Optional blender-mcp server for live sessions.
 metadata:

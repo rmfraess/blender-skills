@@ -1,6 +1,6 @@
 ---
 name: blender-animation
-description: Animation in Blender 5.3 - slotted/layered actions and the channelbag API, Python keyframing, F-curves, game loops with pop/hitch checks, NLA clips, pose library, mocap/BVH/Mixamo retargeting with auto bone maps, baking control rigs to export skeletons, root motion, per-clip export. Use for any keyframe, action, NLA, mocap, or animation-export task.
+description: Use for Blender keyframes, actions, NLA, mocap, loops. Animation in Blender 5.3 - slotted/layered actions and the channelbag API, Python keyframing, F-curves, game loops with pop/hitch checks, NLA clips, pose library, mocap/BVH/Mixamo retargeting with auto bone maps, baking control rigs to export skeletons, root motion, per-clip export.
 license: MIT
 metadata:
   author: blender-agent-skills

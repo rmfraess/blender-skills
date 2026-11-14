@@ -1,6 +1,6 @@
 ---
 name: blender-addon-development
-description: Write Blender 5.3 add-ons as extensions - blender_manifest.toml, operators/panels/menus/property groups/preferences, bpy.props rules after 5.0, undo/redo, modal and timer patterns, gpu drawing (no bgl), bundling Python wheels, CLI validate/build/install, testing headless, extensions platform publishing. Use when creating or fixing a Blender add-on, tool, or UI.
+description: Use for building or fixing Blender add-ons or extensions. Write Blender 5.3 add-ons as extensions - blender_manifest.toml, operators/panels/menus/property groups/preferences, bpy.props rules after 5.0, undo/redo, modal and timer patterns, gpu drawing (no bgl), bundling Python wheels, CLI validate/build/install, testing headless, extensions platform publishing.
 license: MIT
 metadata:
   author: blender-agent-skills

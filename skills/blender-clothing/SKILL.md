@@ -1,6 +1,6 @@
 ---
 name: blender-clothing
-description: Game clothing in Blender 5.3 - garments from body regions (ease offset, thickness), skin-weight transfer, hiding covered body faces, cloth-sim draping for folds, body-morph shape keys on garments, layered clothing, pose-aware poke-through checks, sim-to-game-mesh cleanup. Use for shirts, pants, armor, outfits, layered or swappable clothing.
+description: Use for Blender game clothing, garments and outfits. Game clothing in Blender 5.3 - garments from body regions (ease offset, thickness), skin-weight transfer, hiding covered body faces, cloth-sim draping for folds, body-morph shape keys on garments, layered clothing, pose-aware poke-through checks, sim-to-game-mesh cleanup.
 license: MIT
 metadata:
   author: blender-agent-skills
