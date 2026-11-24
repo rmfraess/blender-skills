@@ -39,21 +39,35 @@ def run(objects=None, method="quadriflow", tris=10000, voxel=0.0, symmetry=False
         low.name = low.data.name = f"{src.name}_low"
         for c in src.users_collection:
             c.objects.link(low)
+        had_keys = bool(low.data.shape_keys)
+        if had_keys:  # new topology: keys can't transfer (and block modifier apply)
+            low.shape_key_clear()
         _apply_all(low)
         before = len(low.data.polygons)
         tris_before = bx.mesh_tris(low, evaluated=False)
         faces = max(tris // 2, 4)
         if method == "quadriflow":
-            # Quadriflow needs a closed manifold: voxel remesh first (size from target density)
+            # Quadriflow needs a closed manifold: voxel remesh first (size from target density; also
+            # keeps dense sculpts fast). Some meshes make 5.3 reject the voxel output, so retry on the
+            # untouched source mesh before giving up.
+            qf = dict(mode="FACES", target_faces=faces, use_mesh_symmetry=symmetry,
+                      use_preserve_sharp=True, seed=0)
+            orig = low.data.copy()
             area = sum(p.area for p in low.data.polygons) * max(low.scale) ** 2
             low.data.remesh_voxel_size = voxel or max(math.sqrt(area / max(faces * 4, 1)), 1e-4)
             with _ctx(low):
                 bpy.ops.object.voxel_remesh()
-                res = bpy.ops.object.quadriflow_remesh(mode="FACES", target_faces=faces,
-                                                       use_mesh_symmetry=symmetry,
-                                                       use_preserve_sharp=True, seed=0)
+                res = bpy.ops.object.quadriflow_remesh(**qf)
             if res != {"FINISHED"}:
-                raise RuntimeError("quadriflow failed (non-manifold after voxel remesh?)")
+                remeshed, low.data = low.data, orig
+                orig.name = remeshed.name
+                bpy.data.meshes.remove(remeshed)
+                with _ctx(low):
+                    res = bpy.ops.object.quadriflow_remesh(**qf)
+            else:
+                bpy.data.meshes.remove(orig)
+            if res != {"FINISHED"}:
+                raise RuntimeError("quadriflow failed on voxel remesh and source (non-manifold?)")
         elif method == "decimate":
             d = low.modifiers.new("Decimate", "DECIMATE")
             d.decimate_type = "COLLAPSE"
@@ -77,6 +91,8 @@ def run(objects=None, method="quadriflow", tris=10000, voxel=0.0, symmetry=False
         out[src.name] = {"low": low.name, "faces_before": before, "faces_after": len(low.data.polygons),
                          "tris_after": bx.mesh_tris(low, evaluated=False),
                          "uvs_kept": bool(low.data.uv_layers) and method != "quadriflow"}
+        if had_keys:
+            out[src.name]["shape_keys_dropped"] = True
     return {"ok": True, "method": method, "objects": out,
             "next": "check edge flow (look wireframe), unwrap (uv_pack.py), bake (blender-texture-baking)"}
 

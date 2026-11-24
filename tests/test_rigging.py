@@ -49,3 +49,39 @@ def test_proxy_bind_and_fix():
     assert r["method"] == "proxy" and r["unweighted_verts"] == 0, r
     chk = skill_module("blender-character-rigging", "rig_check").run(armature="CharRig", fix=True)
     assert chk["skin"]["Char"]["over_4"] == 0
+
+
+def test_rig_check_dense_mesh():
+    """Issue #11: >= 4000 verts makes the symmetry sample step > 1 (bpy collections reject stepped slices)."""
+    body = fx.uv_sphere("Dense", segs=96, rings=48)
+    assert len(body.data.vertices) >= 4000
+    arm = bpy.data.objects.new("DenseRig", bpy.data.armatures.new("DenseRig"))
+    bpy.context.scene.collection.objects.link(arm)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    b = arm.data.edit_bones.new("spine")
+    b.head, b.tail = (0, 0, -1), (0, 0, 1)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    body.parent = arm
+    body.modifiers.new("Armature", "ARMATURE").object = arm
+    body.vertex_groups.new(name="spine").add(range(len(body.data.vertices)), 1.0, "REPLACE")
+    chk = skill_module("blender-character-rigging", "rig_check").run(armature="DenseRig", profile="game")
+    assert chk["skin"]["Dense"]["verts"] == len(body.data.vertices), chk
+    assert chk["skin"]["Dense"]["unweighted"] == 0, chk
+
+
+def test_bind_tiny_and_huge_rigs_get_real_weights():
+    """Bone heat fails at mm/km world sizes (all weight on one bone); bind_mesh binds at human size."""
+    for s in (0.001, 1000):
+        body, arm = fx.simple_character()
+        arm.scale = (s,) * 3
+        bpy.context.view_layer.update()
+        before = arm.matrix_world.copy()
+        r = skill_module("blender-character-rigging", "bind_mesh").run(armature="CharRig", meshes=["Char"])
+        assert "note" in r and r["meshes"]["Char"]["max_influences"] >= 2, r
+        assert (arm.matrix_world - before).to_3x3().to_scale().length < 1e-6 * max(s, 1)
+        vg = {g.index: g.name for g in body.vertex_groups}
+        v = next(v for v in body.data.vertices if abs(v.co.z - 1.32) < 0.1)
+        assert {vg[g.group] for g in v.groups if g.weight > 0.05} == {"spine", "chest"}, [(vg[g.group], g.weight) for g in v.groups]
+        bpy.data.objects.remove(body)
+        bpy.data.objects.remove(arm)

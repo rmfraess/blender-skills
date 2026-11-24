@@ -123,6 +123,15 @@ def test_review_shots_renders_sheet():
     r = skill_module("blender-asset-qa", "review_shots").run(out=str(TMP / "qa.png"), res=128, mode="wire")
     assert os.path.getsize(r["sheet"]) > 1000 and len(r["views"]) == 4
     assert "QA_Cam" not in bpy.data.objects and len(bpy.data.objects) == 1
+    rs = skill_module("blender-asset-qa", "review_shots")
+    assert rs.run(out=str(TMP / "qa3.png"), res=64, views=["front", "right", "top"])["layout"] == "3x1"
+    r = rs.run(out=str(TMP / "qa5.png"), res=64, views=["front", "right", "back", "left", "top"])
+    assert r["layout"] == "3x2", r
+    im = bpy.data.images.load(r["sheet"])
+    px = im.pixels[:]
+    bpy.data.images.remove(im)
+    corner = px[(64 * 3 - 1) * 4:(64 * 3 - 1) * 4 + 3]  # bottom-right cell is the unused one
+    assert max(corner) < 0.99, corner  # background, not white
 
 
 def test_material_and_texture_delivery_checks():
@@ -158,3 +167,14 @@ def test_material_and_texture_delivery_checks():
     ob.data.materials[1] = None
     r = qa.run(objects=["Crate"])
     assert any("empty/missing material slot" in e for e in r["errors"]), r["errors"]
+
+
+def test_mirrored_object_is_not_inside_out_and_empty_mesh_is_flagged():
+    c = fx.cube("Mirror", location=(0, 0, 1))
+    c.scale = (-1, 1, 1)
+    r = _qa().run(objects=["Mirror"], uv=False)
+    assert r["objects"]["Mirror"]["inside_out_islands"] == 0, r
+    assert any("negative scale" in e for e in r["errors"]), r
+    fx.mesh_object("Hollow", lambda bm: None)
+    r = _qa().run(objects=["Hollow"], uv=False)
+    assert r["errors"] == ["Hollow: mesh has no faces"], r

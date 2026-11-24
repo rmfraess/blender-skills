@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.3] - 2026-11-21
+- `bind_mesh`: rigs a few mm or km tall (unit-mismatched imports) got rigid single-bone weights; now bound at human size and restored.
+- `export_asset`: static props no longer get an empty animation take in FBX.
+- `qa_check`: mirrored (negative-scale) objects no longer reported inside out; meshes with no faces are flagged.
+- `apply_stack --apply`: works on multi-user meshes; skips (instead of crashing) meshes with shape keys.
+- `auto_retopo`: decimate/planar no longer crash on meshes with shape keys (dropped on the low copy).
+- `toon_setup --remove`: no leftover empty material slot.
+- Clearer errors: `turntable` with nothing to frame, `shapekeys` missing key, `stress_poses` with no recognised bones.
+
+## [1.3.2] - 2026-11-17
+- `rig_check`: no longer crashes with `slice steps not supported` on skinned meshes with 4000+ vertices (#11, thanks @JairAgu).
+
+## [1.3.1] - 2026-11-14
+- Fixes from end-to-end prop and rigged-character runs (#8, thanks @Sebiria): `loop_check` no longer flags smooth reversals as hitches (now reports `kink`/`dip`), glTF export drops other rigs' actions, `rig_check` ignores muted constraints and maps Rigify bones to Unity Humanoid correctly, PBR presets set the viewport color, Git Bash path note.
+- Retopo: Quadriflow voxel-remeshes first again (≈4x faster on dense meshes) and retries on the source mesh only if that fails.
+- `review_shots`: 1–3 views fit on one row; unused grid cells use the background instead of white.
+- `uv_pack`: warns when `seams`/`min_stretch` runs on a mesh with no seams.
+
 ## [1.3.0] - 2026-11-13
 - Blender 5.3 support (5.2 LTS still works). All 69 tests pass on 5.3.0; CI tests both 5.2.3 and 5.3.0.
 - Core: 5.3 migration table (compositor effects stack, glTF compressed-image options, VSE `RIPPLE`, LoopTools ops, Gaussian-splat point clouds, rotation-mode conversion).

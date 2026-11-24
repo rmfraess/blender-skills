@@ -107,6 +107,14 @@ def _coerce(v):
     return {"true": True, "false": False}.get(v.lower(), v)
 
 
+def _animated(o):
+    """True if exporting o could carry animation (keys, NLA, drivers, constraints, shape-key anim, rigs)."""
+    ad = o.animation_data
+    sk = getattr(o.data, "shape_keys", None)
+    return (o.type == "ARMATURE" or bool(o.constraints) or bool(ad and (ad.action or ad.nla_tracks or ad.drivers))
+            or bool(sk and sk.animation_data))
+
+
 def run(preset="gltf", objects=None, collection=None, out="", batch=False, no_anim=False,
         draco=False, set=None, **_):  # noqa: A002
     bx.object_mode()
@@ -129,6 +137,19 @@ def run(preset="gltf", objects=None, collection=None, out="", batch=False, no_an
     warn += [f"{o.name}: n-gons present; tangents need tris/quads" for o in obs
              if o.type == "MESH" and fmt == "fbx" and kw.get("use_tspace") and not kw.get("use_triangles")
              and any(len(p.vertices) > 4 for p in o.data.polygons)]
+    # glTF single-armature mode adds EVERY armature action in the file, even ones driving other rigs
+    # (e.g. the Rigify control rig's clip baked onto GAME_*): it lands as a bogus extra clip.
+    if fmt == "gltf" and kw.get("export_animations") and "export_anim_single_armature" not in kw:
+        names = {o.name for o in obs}
+        foreign = []
+        for a in bpy.data.actions:
+            users = [u.name for s in a.slots if s.target_id_type == "OBJECT" for u in s.users()]
+            if users and not names.intersection(users):
+                foreign.append(a.name)
+        if foreign:
+            kw["export_anim_single_armature"] = False
+            warn.append(f"skipped actions that animate non-exported objects: {foreign[:10]}; only the "
+                        "exported objects' active action + NLA strips are exported (bake_action adds strips)")
     out = bpy.path.abspath(out) if out else os.path.join(
         os.path.dirname(bpy.data.filepath) or os.getcwd(), "export", f"{obs[0].name}{EXT[fmt]}")
     if fmt == "usd" and not out.endswith((".usd", ".usda", ".usdc", ".usdz")):
@@ -149,8 +170,11 @@ def run(preset="gltf", objects=None, collection=None, out="", batch=False, no_an
         if root is not None:
             loc = root.location.copy()
             root.location = Vector()
+        jkw = kw
+        if fmt == "fbx" and kw.get("bake_anim") and not any(_animated(m) for m in members):
+            jkw = dict(kw, bake_anim=False)  # static props: no baked transform "take" in the FBX
         try:
-            res = _export(fmt, path, kw)
+            res = _export(fmt, path, jkw)
         finally:
             if loc is not None:
                 root.location = loc
