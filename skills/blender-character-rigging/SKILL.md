@@ -11,7 +11,11 @@ metadata:
 
 The execution model is in `blender-core`. Faces and shape keys are in `blender-facial-shapekeys`, animation in `blender-animation`.
 
-## Pipeline (scripts chain; each returns JSON)
+## Choose a base before building a rig
+
+For a creature, first look for a production-cleared mesh close to the intended proportions **with a demonstrated target movement**. Play the motion before editing, then replay it after reshaping: coat edits need not disturb a gait, but changing limb length can make planted feet slide. A bone list or an attractive still does not show deformation quality. If no suitable moving base exists, treat the generated mesh as a candidate: test one required movement before detailing. Compare a side view with real footage for contact and joint collapse, then judge it from the intended camera. Keep a useful likeness as a shape reference even if its mesh fails the movement test.
+
+## Humanoid rig from scratch (scripts chain; each returns JSON)
 1. **Prepare the mesh**: scale applied, facing **-Y**, feet at Z=0, centered on X=0, symmetric, in T- or A-pose (A-pose 30–45° deforms shoulders better). Run `blender-asset-qa` first.
 2. **Metarig**: `scripts/rigify_build.py -- --add basic_human --fit Body` (`human` adds a full face rig; for games use `--no-face` + shape keys).
 3. **Place the joints** (the fit only scales). Edit bones in X-ray against the mesh: joints sit at the **pivot of rotation** (inside the volume, not on the surface). The elbow and knee need a slight bend toward their natural direction (elbow back, knee forward) so the IK solves the right way. Symmetrize: `bpy.ops.armature.symmetrize()`. Check with `look` (`shading="xray"`).
